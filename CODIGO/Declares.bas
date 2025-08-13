@@ -297,6 +297,8 @@ Public FxNavega                    As Byte
 Public ChatCombate                 As Byte
 Public ChatGlobal                  As Byte
 Public PantallaCompleta            As Boolean
+Public NumTexRelease               As Integer
+Public TexHighWaterMark            As Long
 Public DisableDungeonLighting      As Boolean
 Public MostrarIconosMeteorologicos As Byte
 Public OpcionMenu                  As Byte

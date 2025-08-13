@@ -22,6 +22,25 @@ Sub SwitchMap(ByVal map As Integer, Optional ByVal NewResourceMap As Integer = 0
 
     
     On Error GoTo SwitchMap_Err
+
+    
+    ' During map transition, free up a batch of old textures if we’re over our MB threshold
+    If Not SurfaceDB Is Nothing Then
+        ' GetAllocatedBytes returns total usage in bytes, so convert to MB
+        Dim usedBytes As Double
+        Dim usedMB    As Double
+        usedBytes = SurfaceDB.GetAllocatedBytes()
+        usedMB = usedBytes / 1048576#
+        If usedMB >= TexHighWaterMark Then
+            ' Optional debug log
+            Debug.Print "Texture memory " & _
+                        format$(usedMB, "0.00") & " MB = " & _
+                        TexHighWaterMark & " MB ? releasing " & NumTexRelease & " textures"
+            ' Evict the configured number of unused textures
+            SurfaceDB.ReleaseUnusedTextures NumTexRelease
+        End If
+    End If
+    
     If NewResourceMap < 1 Then
         NewResourceMap = map
     End If
