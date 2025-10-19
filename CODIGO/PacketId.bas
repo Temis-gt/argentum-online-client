@@ -206,9 +206,10 @@ Public Enum ServerPacketID
     eAntiCheatMessage
     eAntiCheatStartSession
     eReportLobbyList
-    #If PYMMO = 0 Then
-        eAccountCharacterList
-    #End If
+#If PYMMO = 0 Then
+    eAccountCharacterList
+#End If
+    eChangeSkinSlot
     eMaxPacket
     [PacketCount]
 End Enum
@@ -538,6 +539,7 @@ Public Enum ClientPacketID
         eLoginAccount
         eDeleteCharacter
     #End If
+    eChangeSkinSlot
     eMaxPacket
     [PacketCount]
 End Enum
