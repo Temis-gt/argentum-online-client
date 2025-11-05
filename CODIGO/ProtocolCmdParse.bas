@@ -767,8 +767,6 @@ Public Sub ParseUserCommand(ByVal RawCommand As String)
                     'Avisar que falta el parametro
                     Call ShowConsoleMsg(JsonLanguage.Item("MENSAJE_FALTAN_PARAMETROS_UTILICE"))
                 End If
-            Case "/SM"
-                Call WriteSeguirMouse(ArgumentosRaw)
             Case "/PERDONFACCION", "/FORGIVENESS"
                 If notNullArguments Then
                     Call WritePerdonFaccion(ArgumentosRaw)
@@ -1395,16 +1393,8 @@ Public Sub ParseUserCommand(ByVal RawCommand As String)
                 End If
             Case "/ECHARTODOSPJS", "/EARTHODOSPJS"
                 Call WriteKickAllChars
-            Case "/RELOADNPCS"
-                Call WriteReloadNPCs
-            Case "/RELOADSINI"
-                Call WriteReloadServerIni
             Case "/HOGAR", "/HOME"
                 Call WriteHome
-            Case "/RELOADHECHIZOS"
-                Call WriteReloadSpells
-            Case "/RELOADOBJ"
-                Call WriteReloadObjects
             Case "/CHATCOLOR"
                 If notNullArguments And CantidadArgumentos >= 3 Then
                     If ValidNumber(ArgumentosAll(0), eNumber_Types.ent_Byte) And ValidNumber(ArgumentosAll(1), eNumber_Types.ent_Byte) And ValidNumber(ArgumentosAll(2), _
