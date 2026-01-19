@@ -779,7 +779,6 @@ Public Sub HandleDisconnect()
     For i = 1 To MAX_SKINSINVENTORY_SLOTS
         Call frmSkins.InvSkins.ClearSlot(i)
     Next i
-    
     Call frmCrafteo.InvCraftCatalyst.ClearSlot(1)
     UserInvUnlocked = 0
     Alocados = 0
@@ -847,6 +846,9 @@ Public Sub HandleDisconnect()
         If prgRun Then
             Call General_Set_Connect
         End If
+    #End If
+    #If No_Api_Discord = 0 Then
+        Call Discord_Update(JsonLanguage.Item(CStr("MSG_GULFAS_JOKE" & RandomNumber(1, 6))), JsonLanguage.Item("MSG_ACCOUNT_SCREEN"), DISCORD_ARGENTUM_ONLINE_LOGO, DISCORD_TITLE, DISCORD_CIRCLE_MINIATURE, DISCORD_PLAYING_STRING)
     #End If
     Exit Sub
 HandleDisconnect_Err:
@@ -1631,7 +1633,7 @@ Private Sub HandleChatOverHeadImpl(ByVal chat As String, _
             Dim MsgID    As Integer
             Dim extraStr As String
             MsgID = val(ReadField(1, text, Asc("*")))             ' 2082
-            extraStr = ReadField(2, Text, Asc("*"))               ' "Nombre¬OtroValor"
+            extraStr = ReadField(2, text, Asc("*"))               ' "Nombre¬OtroValor"
             chat = Locale_Parse_ServerMessage(MsgID, extraStr)
             copiar = False
             duracion = 20
@@ -4900,11 +4902,14 @@ Private Sub HandleQuestDetails()
     Dim ObjIndex       As Integer
     Dim AmountHave     As Integer
     Dim QuestIndex     As Integer
-    Dim LevelRequerido As Byte
-    Dim QuestRequerida As Integer
+    Dim RequiredLevel As Byte
+    Dim LimitLevel As Byte
+    Dim RequiredClass As Byte
+    Dim RequiredQuest As Integer
     Dim subelemento As ListItem
     Dim cantidadobjs As Integer
     Dim obindex As Integer
+    Dim requirements As String
     FrmQuests.ListView2.ListItems.Clear
     FrmQuests.ListView1.ListItems.Clear
     FrmQuests.ListView1.ColumnHeaders(2).Width = 780 'Agrando el ancho de la columna para que entre la cantidad de npcs correctamente
@@ -4914,16 +4919,27 @@ Private Sub HandleQuestDetails()
     FrmQuests.picture1.Refresh
     FrmQuests.npclbl.Caption = ""
     FrmQuests.objetolbl.Caption = ""
+    requirements = ""
     
     QuestIndex = Reader.ReadInt16
     FrmQuests.titulo.Caption = QuestList(QuestIndex).nombre
     FrmQuests.lblRepetible.visible = QuestList(QuestIndex).Repetible = 1
-    LevelRequerido = Reader.ReadInt8
-    QuestRequerida = Reader.ReadInt16
-    FrmQuests.detalle.Text = QuestList(QuestIndex).desc & vbCrLf & vbCrLf & JsonLanguage.Item("MENSAJE_QUEST_REQUISITOS") & vbCrLf & JsonLanguage.Item( _
-            "MENSAJE_QUEST_NIVEL_REQUERIDO") & LevelRequerido & vbCrLf
-    If QuestRequerida <> 0 Then
-        FrmQuests.detalle.Text = FrmQuests.detalle.Text & vbCrLf & JsonLanguage.Item("MENSAJE_QUEST_REQUERIDA") & QuestList(QuestRequerida).nombre
+    RequiredLevel = Reader.ReadInt8
+    LimitLevel = Reader.ReadInt8
+    RequiredClass = Reader.ReadInt8
+    RequiredQuest = Reader.ReadInt16
+    FrmQuests.detalle.Text = QuestList(QuestIndex).desc
+    If RequiredLevel > 1 Then
+        requirements = requirements & JsonLanguage.Item("MENSAJE_QUEST_NIVEL_REQUERIDO") & RequiredLevel & vbCrLf
+    End If
+    If LimitLevel <> 0 Then
+        requirements = requirements & JsonLanguage.Item("MENSAJE_QUEST_NIVEL_MAXIMO") & LimitLevel & vbCrLf
+    End If
+    If RequiredClass <> 0 And RequiredClass <= 12 Then
+        requirements = requirements & JsonLanguage.Item("MENSAJE_QUEST_CLASE") & ListaClases(RequiredClass) & vbCrLf
+    End If
+    If RequiredQuest <> 0 Then
+        requirements = requirements & JsonLanguage.Item("MENSAJE_QUEST_REQUERIDA") & QuestList(RequiredQuest).nombre & vbCrLf
     End If
     tmpStr = tmpStr & vbCrLf & JsonLanguage.Item("MENSAJE_OBJETIVOS") & vbCrLf
     tmpByte = Reader.ReadInt8
@@ -4975,7 +4991,7 @@ Private Sub HandleQuestDetails()
     RequiredSkill = Reader.ReadInt8
     RequiredValue = Reader.ReadInt8
     If RequiredSkill > 0 Then
-        FrmQuests.detalle.Text = FrmQuests.detalle.Text & SkillsNames(RequiredSkill) & ": " & RequiredValue
+        requirements = requirements & SkillsNames(RequiredSkill) & ": " & RequiredValue & vbCrLf
     End If
     tmpStr = tmpStr & vbCrLf & JsonLanguage.Item("MENSAJE_RECOMPENSAS") & vbCrLf
     Dim tmplong As Long
@@ -5014,6 +5030,10 @@ Private Sub HandleQuestDetails()
         subelemento.SubItems(3) = 1
         subelemento.SubItems(4) = "typeSpell"
     Next i
+    
+    If Len(requirements) > 0 Then
+        FrmQuests.detalle.Text = FrmQuests.detalle.Text & vbCrLf & vbCrLf & JsonLanguage.Item("MENSAJE_QUEST_REQUISITOS") & vbCrLf & requirements
+    End If
     
     FrmQuests.txtInfo.Text = tmpStr
     Call FrmQuests.ListView1_Click
