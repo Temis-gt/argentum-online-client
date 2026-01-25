@@ -56,8 +56,8 @@ Public Function HandleIncomingData(ByVal message As Network.Reader) As Boolean
                 Call SaveStringInFile("Authenticated with server OK", "remote_debug.txt")
             Case ServerPacketID.elogged
                 frmDebug.add_text_tracebox "Logged"
-                Dim dummy As Boolean
-                dummy = Reader.ReadBool
+                Dim res As Boolean
+                res = Reader.ReadBool
                 Call SaveStringInFile("Logged with character " & CharacterRemote, "remote_debug.txt")
                 InitiateShutdownProcess = True
                 ShutdownProcessTimer.start
@@ -779,6 +779,7 @@ Public Sub HandleDisconnect()
     For i = 1 To MAX_SKINSINVENTORY_SLOTS
         Call frmSkins.InvSkins.ClearSlot(i)
     Next i
+    
     Call frmCrafteo.InvCraftCatalyst.ClearSlot(1)
     UserInvUnlocked = 0
     Alocados = 0
@@ -846,9 +847,6 @@ Public Sub HandleDisconnect()
         If prgRun Then
             Call General_Set_Connect
         End If
-    #End If
-    #If No_Api_Discord = 0 Then
-        Call Discord_Update(JsonLanguage.Item(CStr("MSG_GULFAS_JOKE" & RandomNumber(1, 6))), JsonLanguage.Item("MSG_ACCOUNT_SCREEN"), DISCORD_ARGENTUM_ONLINE_LOGO, DISCORD_TITLE, DISCORD_CIRCLE_MINIATURE, DISCORD_PLAYING_STRING)
     #End If
     Exit Sub
 HandleDisconnect_Err:
@@ -1633,7 +1631,7 @@ Private Sub HandleChatOverHeadImpl(ByVal chat As String, _
             Dim MsgID    As Integer
             Dim extraStr As String
             MsgID = val(ReadField(1, text, Asc("*")))             ' 2082
-            extraStr = ReadField(2, text, Asc("*"))               ' "Nombre¬OtroValor"
+            extraStr = ReadField(2, Text, Asc("*"))               ' "Nombre¬OtroValor"
             chat = Locale_Parse_ServerMessage(MsgID, extraStr)
             copiar = False
             duracion = 20

@@ -429,6 +429,7 @@ Public LastScroll                  As Byte
 Public InfoItemsEnRender           As Boolean
 Public ButtonsExpBar               As Byte
 Public ShowNameMapInRender         As Byte
+Public ConfirmPetRelease           As Byte
 Public InvertirSonido              As Byte
 Public VolMusic                    As Long
 Public VolFX                       As Long
@@ -502,6 +503,7 @@ Public TransferCharNewOwner As String
 Public CuentaPassword       As String
 Public CuentaEmail          As String
 Public CharacterRemote      As String
+Public NamePj(1 To 8)       As String
 Public ValidationCode       As String
 'Objetos públicos
 Public DialogosClanes       As clsGuildDlg
@@ -1079,6 +1081,8 @@ Public Enum eTrigger
     CARCEL = 19
 End Enum
 
+'Server stuff
+Public RequestPosTimer        As Integer 'Used in main loop
 Public stxtbuffer             As String 'Holds temp raw data from server
 Public stxtbuffercmsg         As String 'Holds temp raw data from server
 Public SendNewChar            As Boolean 'Used during login
