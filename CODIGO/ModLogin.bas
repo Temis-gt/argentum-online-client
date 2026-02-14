@@ -418,11 +418,44 @@ Public Sub RequestNewPassword(ByVal Email As String, ByVal newPassword As String
     Call connectToLoginServer
 End Sub
 
+Public Function GetSelectedCharIDFromName(ByVal CharName As String) As Long
+    On Error GoTo GetSelectedCharIDFromName_Err
+    
+    Dim i As Long
+    Dim normalizedInput As String
+    Dim normalizedStored As String
+    
+    GetSelectedCharIDFromName = 0
+    
+    normalizedInput = UCase$(Trim$(CharName))
+    
+    If Len(normalizedInput) = 0 Then Exit Function
+    
+    For i = 1 To CantidadDePersonajesEnCuenta
+        normalizedStored = UCase$(Trim$(Pjs(i).nombre))
+        
+        If normalizedStored = normalizedInput Then
+            GetSelectedCharIDFromName = Pjs(i).id
+            Exit Function
+        End If
+    Next i
+    
+    Exit Function
+
+GetSelectedCharIDFromName_Err:
+    GetSelectedCharIDFromName = 0
+End Function
+
+
 Public Sub LoginCharacter(ByVal Name As String)
+
+    Debug.Assert GetSelectedCharIDFromName(Name) > 0
+
     On Error GoTo LogearPersonaje_Err
     userName = Name
-    If Connected And FPSFLAG = 1 Then
-        frmMain.ShowFPS.enabled = True
+    If Connected Then
+        frmMain.ShowFPS.enabled = (FPSFLAG = 1)
+        frmMain.fps.visible = (FPSFLAG = 1)
     End If
     #If PYMMO = 0 Then
         Call Protocol_Writes.WriteLoginExistingChar
