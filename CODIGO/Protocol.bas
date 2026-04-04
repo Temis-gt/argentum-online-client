@@ -2206,12 +2206,44 @@ Private Sub HandleCharacterCreate()
         .Meditating = Fx <> 0
         Dim NombreYClan As String
         NombreYClan = Reader.ReadString8()   '
-        Dim Pos As Integer
-        Pos = InStr(NombreYClan, "<")
-        If Pos = 0 Then Pos = InStr(NombreYClan, "[")
-        If Pos = 0 Then Pos = Len(NombreYClan) + 2
-        .nombre = Left$(NombreYClan, Pos - 2)
-        .clan = mid$(NombreYClan, Pos)
+        Dim posAlias As Integer
+        Dim posClan As Integer
+        Dim posAliasEnd As Integer
+        
+        ' Find positions of delimiters
+        posAlias = InStr(NombreYClan, "{")
+        posAliasEnd = InStr(NombreYClan, "}")
+        posClan = InStr(NombreYClan, "<")
+        
+        ' Extract name (everything before the alias)
+        If posAlias > 0 Then
+            .nombre = Trim$(Left$(NombreYClan, posAlias - 1))
+        Else
+            If posClan = 0 Then
+                .nombre = NombreYClan
+            Else
+                .nombre = Trim$(Left$(NombreYClan, posClan - 1))
+            End If
+        End If
+        
+        ' Extract alias (between { and })
+        If posAlias > 0 And posAliasEnd > 0 Then
+            .alias = mid$(NombreYClan, posAlias + 1, posAliasEnd - posAlias - 1)
+        Else
+            .alias = vbNullString
+        End If
+        
+        ' Extract clan (between < and >) or special status (between [ and ])
+        If posClan > 0 Then
+            ' Has clan: <ClanName>
+            .clan = "<" & mid$(NombreYClan, posClan + 1, InStr(NombreYClan, ">") - posClan - 1) & ">"
+        ElseIf InStr(NombreYClan, "[CONSULTA]") > 0 Then
+            ' Has special status
+            .clan = vbNullString
+            ' You might want a separate .consulta flag here
+        Else
+            .clan = vbNullString
+        End If
         .status = Reader.ReadInt8()
         privs = Reader.ReadInt8()
         ParticulaFx = Reader.ReadInt8()
@@ -2340,6 +2372,8 @@ Private Sub HandleCharacterRemove()
     Call EraseChar(charindex, fueWarp)
     Call RefreshAllChars
     Call ao20audio.StopAllWavsMatchingLabel("meditate" & CStr(charindex))
+    ' Stop any active sailing loop for removed characters.
+    Call ao20audio.StopAllWavsMatchingLabel("sailing_" & CStr(charindex))
     Exit Sub
 HandleCharacterRemove_Err:
     Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleCharacterRemove", Erl)
@@ -2426,10 +2460,15 @@ Private Sub HandleCharacterChange()
         Dim keepStartIdle    As Long
         Dim newGi            As Long
         Dim flags            As Byte
+        Dim wasNavegando     As Boolean: wasNavegando = .Navegando
         ' ============================================
         flags = Reader.ReadInt8()
         .Idle = (flags And &O1)
         .Navegando = (flags And &O2)
+        ' Navigation ended: stop the persistent sailing loop label.
+        If wasNavegando And Not .Navegando Then
+            Call ao20audio.StopAllWavsMatchingLabel("sailing_" & CStr(charindex))
+        End If
         TempInt = Reader.ReadInt16()
         If TempInt < LBound(BodyData()) Or TempInt > UBound(BodyData()) Then
             .Body = BodyData(0)
