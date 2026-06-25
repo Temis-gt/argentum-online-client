@@ -26,6 +26,9 @@ Attribute VB_Name = "ModGameplayUI"
 '
 '
 
+Global G_LastSelectedSlot As Integer
+Global G_LasSelectedObjIndex As Integer
+
 Public Sub SetupGameplayUI()
     frmMain.shapexy.Left = 1200
     frmMain.shapexy.Top = 1200
@@ -220,13 +223,10 @@ Public Sub OnClick(ByVal MouseButton As Long, ByVal MouseShift As Long)
                     End If
                     If SendSkill Then
                         If UsingSkill = eSkill.magia Then
-                            ' Bloquea el envio si el tile objetivo no coincide con la posicion real del cursor.
-                            If CoincideObjetivoHechizoConMouse(tX, tY, mouseX, mouseY) Then
-                                If ComprobarPosibleMacro(mouseX, mouseY) Then
-                                    Call WriteWorkLeftClick(tX + RandomNumber(-2, 2), tY + RandomNumber(-2, 2), UsingSkill)
-                                Else
-                                    Call WriteWorkLeftClick(tX, tY, UsingSkill)
-                                End If
+                            If ComprobarPosibleMacro(mouseX, mouseY) Then
+                                Call WriteWorkLeftClick(tX + RandomNumber(-2, 2), tY + RandomNumber(-2, 2), UsingSkill)
+                            Else
+                                Call WriteWorkLeftClick(tX, tY, UsingSkill)
                             End If
                         Else
                             Call WriteWorkLeftClick(tX, tY, UsingSkill)
@@ -464,6 +464,8 @@ End Sub
 Public Sub UserOrEquipItem(ByVal Slot As Integer, ByVal Equipped As Boolean, ByVal ObjIndex As Integer)
     Dim ObjType As Byte
     ObjType = ObjData(ObjIndex).ObjType
+    G_LastSelectedSlot = Slot
+    G_LasSelectedObjIndex = ObjIndex
     Select Case ObjType
         Case eObjType.otArmadura, eObjType.otESCUDO, eObjType.otmagicos, eObjType.otFlechas, eObjType.otCASCO, eObjType.otAnillos, eObjType.otManchas
             If Not Equipped Then
@@ -493,6 +495,8 @@ Public Sub UserOrEquipItem(ByVal Slot As Integer, ByVal Equipped As Boolean, ByV
             If Not Equipped Then
                 Call WriteEquipItem(Slot)
             End If
+        Case eObjType.otCollectibleCard
+            frmCollectibleCard.visible = True
         Case Else
             Call WriteUseItem(Slot)
     End Select
@@ -568,8 +572,8 @@ End Function
 Public Sub UseSpell(ByVal SpellSlot As Byte, ByVal SpellName As String)
     If pausa Then Exit Sub
     TempTick = GetTickCount And &H7FFFFFFF
-    If Not iClickTick = 0 Then
-        Call RegistrarPosibleMacroCoordenadasPorClickRapido(TempTick - iClickTick, LastMacroButton, tMacroButton.Lanzar, IntervaloEntreClicks)
+    If TempTick - iClickTick < IntervaloEntreClicks And Not iClickTick = 0 And LastMacroButton <> tMacroButton.Lanzar Then
+        Call WriteLogMacroClickHechizo(tMacro.Coordenadas)
     End If
     iClickTick = TempTick
     LastMacroButton = tMacroButton.Lanzar
@@ -639,8 +643,8 @@ End Sub
 Public Sub SelectInventoryTab()
     ActiveInventoryTab = eInventory
     TempTick = GetTickCount And &H7FFFFFFF
-    If Not iClickTick = 0 Then
-        Call RegistrarPosibleMacroCoordenadasPorClickRapido(TempTick - iClickTick, LastMacroButton, tMacroButton.Inventario, IntervaloEntreClicks)
+    If TempTick - iClickTick < IntervaloEntreClicks And Not iClickTick = 0 And LastMacroButton <> tMacroButton.Inventario Then
+        Call WriteLogMacroClickHechizo(tMacro.Coordenadas)
     End If
     iClickTick = TempTick
     LastMacroButton = tMacroButton.Inventario
@@ -652,8 +656,8 @@ End Sub
 Public Sub SelectSpellTab()
     ActiveInventoryTab = eSpellList
     TempTick = GetTickCount And &H7FFFFFFF
-    If Not iClickTick = 0 Then
-        Call RegistrarPosibleMacroCoordenadasPorClickRapido(TempTick - iClickTick, LastMacroButton, tMacroButton.Hechizos, IntervaloEntreClicks)
+    If TempTick - iClickTick < IntervaloEntreClicks And Not iClickTick = 0 And LastMacroButton <> tMacroButton.Hechizos Then
+        Call WriteLogMacroClickHechizo(tMacro.Coordenadas)
     End If
     iClickTick = TempTick
     LastMacroButton = tMacroButton.Hechizos
