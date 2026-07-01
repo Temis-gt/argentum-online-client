@@ -272,9 +272,6 @@ Public Sub CargarRecursos()
     Call CargarColores
     Call CargarCrafteo
     Call InitEngineSprites
-    If CenteredMinimap <> 0 Then
-        Call RenderMinimapCentered(1, 50, 50, CenteredMinimapZoom, CenteredMinimapZoom)
-    End If
     Exit Sub
 CargarRecursos_Err:
     Call RegistrarError(Err.Number, Err.Description, "Recursos.CargarRecursos", Erl)
@@ -1391,6 +1388,7 @@ Public Sub CargarIndicesOBJ()
         NpcData(Npc).BodyOnWaterIdle = val(Leer.GetValue("npc" & Npc, "BodyOnWaterIdle"))
         NpcData(Npc).BodyOnLand = val(Leer.GetValue("npc" & Npc, "Body"))
         NpcData(Npc).BodyIdle = val(Leer.GetValue("npc" & Npc, "BodyIdle"))
+        NpcData(Npc).BodyIdleChangeInterval = val(Leer.GetValue("npc" & Npc, "CambioAIdle"))
         NpcData(Npc).DisabledInBattleServer = val(Leer.GetValue("npc" & Npc, "DisabledInBattleServer"))
         NpcData(Npc).NpcFaceGrh = val(Leer.GetValue("npc" & Npc, "NpcFaceGrh"))
         NpcData(Npc).Amphibian = val(Leer.GetValue("npc" & Npc, "Amphibian")) > 0

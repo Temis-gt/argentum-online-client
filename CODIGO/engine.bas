@@ -1532,6 +1532,7 @@ Sub Char_Render(ByVal charindex As Long, ByVal PixelOffsetX As Integer, ByVal Pi
                 End If
             End If
         End If
+        Call UpdateNpcBodyIdleCycle(charindex)
         PixelOffsetX = PixelOffsetX + .MoveOffsetX
         PixelOffsetY = PixelOffsetY + .MoveOffsetY - terrainHeight
         Dim ease As Single
@@ -1918,6 +1919,39 @@ Char_Render_Err:
     Resume Next
 End Sub
 
+
+Private Sub UpdateNpcBodyIdleCycle(ByVal charindex As Integer)
+    On Error GoTo UpdateNpcBodyIdleCycle_Err
+    With charlist(charindex)
+        If Not .EsNpc Then Exit Sub
+        If .BodyIdle <= 0 Or .BodyOnLand <= 0 Then Exit Sub
+        If .BodyIdleChangeInterval <= 0 Then Exit Sub
+        If .Moving Or .TranslationActive Or .AnimatingBody Then Exit Sub
+        If IsAmphibianOverWater(charindex) Then Exit Sub
+        If .BodyIdleLastChange = 0 Then .BodyIdleLastChange = FrameTime
+        If FrameTime - .BodyIdleLastChange < .BodyIdleChangeInterval * 1000 Then Exit Sub
+        .BodyIdleUsingIdle = Not .BodyIdleUsingIdle
+        .BodyIdleLastChange = FrameTime
+        If .BodyIdleUsingIdle Then
+            .Body = BodyData(.BodyIdle)
+            .iBody = .BodyOnLand
+        Else
+            .Body = BodyData(.BodyOnLand)
+            .iBody = .BodyOnLand
+        End If
+        If .Body.AnimateOnIdle = 0 Then
+            .Body.Walk(.Heading).Loops = 0
+            .Body.Walk(.Heading).started = 0
+        Else
+            .Body.Walk(.Heading).Loops = INFINITE_LOOPS
+            .Body.Walk(.Heading).started = FrameTime
+        End If
+    End With
+    Exit Sub
+UpdateNpcBodyIdleCycle_Err:
+    Call RegistrarError(Err.Number, Err.Description, "engine.UpdateNpcBodyIdleCycle", Erl)
+End Sub
+
 Public Sub SetCharIdle(ByRef c As Char, Optional ByVal force As Boolean = True)
     Dim keepStarted As Long
     ' Pone anim de quieto. Si AnimateOnIdle=0, NO anima (frame fijo).
@@ -2035,7 +2069,9 @@ Public Sub start()
                     If frmCollectibleCard.visible Then
                         Call DrawCollectibleCard
                     End If
-                    
+                    If frmMain.MiniMap.visible = True And CenteredMinimap <> 0 Then
+                        Call DrawCenteredMinimap
+                    End If
                     'Utilizo un boolean, para evitar utilizar la propiedad .visible de los formularios, ya que aparentemente instancia el form y baja la performance.
                     If bSkins Then
                         DrawInventorySkins
